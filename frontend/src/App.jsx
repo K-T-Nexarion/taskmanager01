@@ -4,6 +4,9 @@ import { Navigate, Route, Routes } from 'react-router';
 import LoginPage from './pages/LoginPage';
 import TaskPage from './pages/TaskPage';
 
+const API_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 function App() {
   const [tasks, setTasks] = useState([]);
 
@@ -20,7 +23,7 @@ function App() {
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch('http://localhost:8080/tasks', {
+      const response = await fetch(`${API_URL}/tasks`, {
         credentials: 'include',
       });
 
@@ -44,12 +47,9 @@ function App() {
 
   const checkLogin = async () => {
     try {
-      const response = await fetch(
-        'http://localhost:8080/auth/me',
-        {
-          credentials: 'include',
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/me`, {
+        credentials: 'include',
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -77,20 +77,17 @@ function App() {
 
   const register = async () => {
     try {
-      const response = await fetch(
-        'http://localhost:8080/auth/register',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            email,
-            password,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
       if (response.ok) {
         setMessage('ユーザー登録に成功しました');
@@ -110,17 +107,14 @@ function App() {
       body.append('email', email);
       body.append('password', password);
 
-      const response = await fetch(
-        'http://localhost:8080/auth/login',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          credentials: 'include',
-          body,
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        credentials: 'include',
+        body,
+      });
 
       if (response.ok) {
         setMessage('ログインしました');
@@ -138,13 +132,10 @@ function App() {
 
   const logout = async () => {
     try {
-      const response = await fetch(
-        'http://localhost:8080/auth/logout',
-        {
-          method: 'POST',
-          credentials: 'include',
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
 
       if (response.ok) {
         setCurrentUser(null);
@@ -163,21 +154,18 @@ function App() {
 
   const createTask = async () => {
     try {
-      const response = await fetch(
-        'http://localhost:8080/tasks',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            title,
-            description,
-            completed: false,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title,
+          description,
+          completed: false,
+        }),
+      });
 
       if (response.ok) {
         setTitle('');
@@ -196,7 +184,7 @@ function App() {
   const toggleTask = async (task) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/tasks/${task.id}`,
+        `${API_URL}/tasks/${task.id}`,
         {
           method: 'PUT',
           headers: {
@@ -226,7 +214,7 @@ function App() {
   const deleteTask = async (id) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/tasks/${id}`,
+        `${API_URL}/tasks/${id}`,
         {
           method: 'DELETE',
           credentials: 'include',
