@@ -1,123 +1,308 @@
 import { useEffect, useState } from 'react';
+import { Navigate, Route, Routes } from 'react-router';
+
+import LoginPage from './pages/LoginPage';
+import TaskPage from './pages/TaskPage';
 
 function App() {
   const [tasks, setTasks] = useState([]);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
-  const fetchTasks = () => {
-    fetch('http://localhost:8080/tasks')
-      .then(response => response.json())
-      .then(data => setTasks(data));
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const [currentUser, setCurrentUser] = useState(null);
+  const [message, setMessage] = useState('');
+
+  const [checkingLogin, setCheckingLogin] = useState(true);
+
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/tasks', {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        setTasks([]);
+        setMessage('タスクの取得に失敗しました');
+        return;
+      }
+
+      const data = await response.json();
+
+      if (Array.isArray(data)) {
+        setTasks(data);
+      }
+    } catch (error) {
+      console.error(error);
+      setTasks([]);
+      setMessage('サーバーに接続できません');
+    }
+  };
+
+  const checkLogin = async () => {
+    try {
+      const response = await fetch(
+        'http://localhost:8080/auth/me',
+        {
+          credentials: 'include',
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+
+        setCurrentUser(data);
+        await fetchTasks();
+      } else {
+        setCurrentUser(null);
+        setTasks([]);
+      }
+    } catch (error) {
+      console.error(error);
+
+      setCurrentUser(null);
+      setTasks([]);
+      setMessage('サーバーに接続できません');
+    } finally {
+      setCheckingLogin(false);
+    }
   };
 
   useEffect(() => {
-    fetchTasks();
+    checkLogin();
   }, []);
 
-  // タスク追加
+  const register = async () => {
+    try {
+      const response = await fetch(
+        'http://localhost:8080/auth/register',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        setMessage('ユーザー登録に成功しました');
+      } else {
+        setMessage('ユーザー登録に失敗しました');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage('サーバーに接続できません');
+    }
+  };
+
+  const login = async () => {
+    try {
+      const body = new URLSearchParams();
+
+      body.append('email', email);
+      body.append('password', password);
+
+      const response = await fetch(
+        'http://localhost:8080/auth/login',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          credentials: 'include',
+          body,
+        }
+      );
+
+      if (response.ok) {
+        setMessage('ログインしました');
+        await checkLogin();
+      } else {
+        setMessage(
+          'メールアドレスまたはパスワードが違います'
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage('サーバーに接続できません');
+    }
+  };
+
+  const logout = async () => {
+    try {
+      const response = await fetch(
+        'http://localhost:8080/auth/logout',
+        {
+          method: 'POST',
+          credentials: 'include',
+        }
+      );
+
+      if (response.ok) {
+        setCurrentUser(null);
+        setTasks([]);
+        setEmail('');
+        setPassword('');
+        setMessage('ログアウトしました');
+      } else {
+        setMessage('ログアウトに失敗しました');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage('サーバーに接続できません');
+    }
+  };
+
   const createTask = async () => {
-    const response = await fetch('http://localhost:8080/tasks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title,
-        description,
-        completed: false,
-      }),
-    });
+    try {
+      const response = await fetch(
+        'http://localhost:8080/tasks',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            title,
+            description,
+            completed: false,
+          }),
+        }
+      );
 
-    if (response.ok) {
-      setTitle('');
-      setDescription('');
-      fetchTasks();
+      if (response.ok) {
+        setTitle('');
+        setDescription('');
+        setMessage('タスクを追加しました');
+        await fetchTasks();
+      } else {
+        setMessage('タスクの追加に失敗しました');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage('サーバーに接続できません');
     }
   };
 
-  // 完了・未完了を切り替える
   const toggleTask = async (task) => {
-    const response = await fetch(
-      `http://localhost:8080/tasks/${task.id}`,
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: task.title,
-          description: task.description,
-          completed: !task.completed,
-        }),
-      }
-    );
+    try {
+      const response = await fetch(
+        `http://localhost:8080/tasks/${task.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            title: task.title,
+            description: task.description,
+            completed: !task.completed,
+          }),
+        }
+      );
 
-    if (response.ok) {
-      fetchTasks();
+      if (response.ok) {
+        setMessage('タスクを更新しました');
+        await fetchTasks();
+      } else {
+        setMessage('タスクの更新に失敗しました');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage('サーバーに接続できません');
     }
   };
 
-  // タスク削除
   const deleteTask = async (id) => {
-    const response = await fetch(
-      `http://localhost:8080/tasks/${id}`,
-      {
-        method: 'DELETE',
-      }
-    );
+    try {
+      const response = await fetch(
+        `http://localhost:8080/tasks/${id}`,
+        {
+          method: 'DELETE',
+          credentials: 'include',
+        }
+      );
 
-    if (response.ok) {
-      fetchTasks();
+      if (response.ok) {
+        setMessage('タスクを削除しました');
+        await fetchTasks();
+      } else {
+        setMessage('タスクの削除に失敗しました');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage('サーバーに接続できません');
     }
   };
+
+  if (checkingLogin) {
+    return <p>ログイン状態を確認中...</p>;
+  }
 
   return (
-    <div>
-      <h1>タスク管理</h1>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <Navigate
+            to={currentUser ? '/tasks' : '/login'}
+            replace
+          />
+        }
+      />
 
-      <div>
-        <input
-          type="text"
-          placeholder="タイトル"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-        />
+      <Route
+        path="/login"
+        element={
+          currentUser ? (
+            <Navigate to="/tasks" replace />
+          ) : (
+            <LoginPage
+              email={email}
+              password={password}
+              setEmail={setEmail}
+              setPassword={setPassword}
+              register={register}
+              login={login}
+              message={message}
+            />
+          )
+        }
+      />
 
-        <input
-          type="text"
-          placeholder="説明"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-        />
-
-        <button onClick={createTask}>
-          追加
-        </button>
-      </div>
-
-      <h2>タスク一覧</h2>
-
-      {tasks.map(task => (
-        <div key={task.id}>
-          <p>
-            {task.completed ? '✅' : '⬜'}
-            {' '}
-            {task.title}
-          </p>
-
-          <p>{task.description}</p>
-
-          <button onClick={() => toggleTask(task)}>
-            {task.completed ? '未完了に戻す' : '完了'}
-          </button>
-
-          <button onClick={() => deleteTask(task.id)}>
-            削除
-          </button>
-        </div>
-      ))}
-    </div>
+      <Route
+        path="/tasks"
+        element={
+          !currentUser ? (
+            <Navigate to="/login" replace />
+          ) : (
+            <TaskPage
+              currentUser={currentUser}
+              logout={logout}
+              title={title}
+              description={description}
+              setTitle={setTitle}
+              setDescription={setDescription}
+              createTask={createTask}
+              tasks={tasks}
+              toggleTask={toggleTask}
+              deleteTask={deleteTask}
+              message={message}
+            />
+          )
+        }
+      />
+    </Routes>
   );
 }
 
