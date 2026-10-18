@@ -16,6 +16,9 @@ function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const [upgradeEmail, setUpgradeEmail] = useState('');
+  const [upgradePassword, setUpgradePassword] = useState('');
+
   const [currentUser, setCurrentUser] = useState(null);
   const [message, setMessage] = useState('');
 
@@ -77,17 +80,20 @@ function App() {
 
   const register = async () => {
     try {
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      const response = await fetch(
+        `${API_URL}/auth/register`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
 
       if (response.ok) {
         setMessage('ユーザー登録に成功しました');
@@ -107,14 +113,17 @@ function App() {
       body.append('email', email);
       body.append('password', password);
 
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        credentials: 'include',
-        body,
-      });
+      const response = await fetch(
+        `${API_URL}/auth/login`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          credentials: 'include',
+          body,
+        }
+      );
 
       if (response.ok) {
         setMessage('ログインしました');
@@ -130,18 +139,81 @@ function App() {
     }
   };
 
+  const guestLogin = async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/auth/guest`,
+        {
+          method: 'POST',
+          credentials: 'include',
+        }
+      );
+
+      if (response.ok) {
+        setMessage('ゲストとして開始しました');
+        await checkLogin();
+      } else {
+        setMessage('ゲストログインに失敗しました');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage('サーバーに接続できません');
+    }
+  };
+
+  const upgradeGuest = async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/auth/upgrade`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            email: upgradeEmail,
+            password: upgradePassword,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        setUpgradeEmail('');
+        setUpgradePassword('');
+
+        setMessage('アカウント登録が完了しました');
+
+        await checkLogin();
+      } else {
+        setMessage('アカウント登録に失敗しました');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage('サーバーに接続できません');
+    }
+  };
+
   const logout = async () => {
     try {
-      const response = await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      const response = await fetch(
+        `${API_URL}/auth/logout`,
+        {
+          method: 'POST',
+          credentials: 'include',
+        }
+      );
 
       if (response.ok) {
         setCurrentUser(null);
         setTasks([]);
+
         setEmail('');
         setPassword('');
+
+        setUpgradeEmail('');
+        setUpgradePassword('');
+
         setMessage('ログアウトしました');
       } else {
         setMessage('ログアウトに失敗しました');
@@ -154,23 +226,28 @@ function App() {
 
   const createTask = async () => {
     try {
-      const response = await fetch(`${API_URL}/tasks`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          title,
-          description,
-          completed: false,
-        }),
-      });
+      const response = await fetch(
+        `${API_URL}/tasks`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            title,
+            description,
+            completed: false,
+          }),
+        }
+      );
 
       if (response.ok) {
         setTitle('');
         setDescription('');
+
         setMessage('タスクを追加しました');
+
         await fetchTasks();
       } else {
         setMessage('タスクの追加に失敗しました');
@@ -201,6 +278,7 @@ function App() {
 
       if (response.ok) {
         setMessage('タスクを更新しました');
+
         await fetchTasks();
       } else {
         setMessage('タスクの更新に失敗しました');
@@ -223,6 +301,7 @@ function App() {
 
       if (response.ok) {
         setMessage('タスクを削除しました');
+
         await fetchTasks();
       } else {
         setMessage('タスクの削除に失敗しました');
@@ -262,6 +341,7 @@ function App() {
               setPassword={setPassword}
               register={register}
               login={login}
+              guestLogin={guestLogin}
               message={message}
             />
           )
@@ -286,6 +366,11 @@ function App() {
               toggleTask={toggleTask}
               deleteTask={deleteTask}
               message={message}
+              upgradeEmail={upgradeEmail}
+              upgradePassword={upgradePassword}
+              setUpgradeEmail={setUpgradeEmail}
+              setUpgradePassword={setUpgradePassword}
+              upgradeGuest={upgradeGuest}
             />
           )
         }

@@ -15,23 +15,20 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ログインIDとして使用。同じメールアドレスは登録不可。
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    // 後でBCryptでハッシュ化したパスワードを保存する。
     @Column(nullable = false, length = 255)
     private String password;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean guest = false;
 
     public User() {
     }
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getEmail() {
@@ -48,5 +45,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public boolean isGuest() {
+        return guest;
+    }
+
+    public void setGuest(boolean guest) {
+        this.guest = guest;
     }
 }

@@ -1,5 +1,6 @@
 import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
+import UpgradeForm from '../components/UpgradeForm';
 
 function TaskPage({
   currentUser,
@@ -12,19 +13,38 @@ function TaskPage({
   tasks,
   toggleTask,
   deleteTask,
-  message
+  message,
+  upgradeEmail,
+  upgradePassword,
+  setUpgradeEmail,
+  setUpgradePassword,
+  upgradeGuest
 }) {
   return (
     <div>
       <h1>タスク管理</h1>
 
-      <p>ログイン中：{currentUser.email}</p>
+      {currentUser.guest ? (
+        <p>ゲストとして利用中</p>
+      ) : (
+        <p>ログイン中：{currentUser.email}</p>
+      )}
 
       <button onClick={logout}>
         ログアウト
       </button>
 
       <p>{message}</p>
+
+      {currentUser.guest && (
+        <UpgradeForm
+          upgradeEmail={upgradeEmail}
+          upgradePassword={upgradePassword}
+          setUpgradeEmail={setUpgradeEmail}
+          setUpgradePassword={setUpgradePassword}
+          upgradeGuest={upgradeGuest}
+        />
+      )}
 
       <TaskForm
         title={title}

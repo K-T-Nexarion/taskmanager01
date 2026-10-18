@@ -67,10 +67,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/auth/register",
                                 "/auth/login",
+                                "/auth/guest",
                                 "/h2-console/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/auth/me",
+                                "/auth/upgrade",
                                 "/tasks/**"
                         ).authenticated()
                         .anyRequest().permitAll()

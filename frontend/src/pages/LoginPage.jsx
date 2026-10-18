@@ -7,6 +7,7 @@ function LoginPage({
   setPassword,
   register,
   login,
+  guestLogin,
   message
 }) {
   return (
@@ -20,6 +21,7 @@ function LoginPage({
         setPassword={setPassword}
         register={register}
         login={login}
+        guestLogin={guestLogin}
         message={message}
       />
     </div>

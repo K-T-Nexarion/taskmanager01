@@ -5,6 +5,7 @@ function LoginForm({
   setPassword,
   register,
   login,
+  guestLogin,
   message
 }) {
   return (
@@ -31,6 +32,10 @@ function LoginForm({
 
       <button onClick={login}>
         ログイン
+      </button>
+
+      <button onClick={guestLogin}>
+        ゲストで始める
       </button>
 
       <p>{message}</p>
